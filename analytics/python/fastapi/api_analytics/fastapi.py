@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from time import time
 from typing import Callable, Union
-from logging import Logger
+from logging import getLogger
 
 from api_analytics.core import log_request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -10,7 +10,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-logger = Logger(__name__)
+logger = getLogger(__name__)
 @dataclass
 class Config:
     """
