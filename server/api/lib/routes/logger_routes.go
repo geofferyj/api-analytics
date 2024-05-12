@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/tom-draper/api-analytics/server/api/lib/log"
@@ -14,7 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oschwald/geoip2-golang"
 )
-
 
 type RequestDataPayload struct {
 	Path         string `json:"path"`
@@ -49,6 +49,12 @@ func getCountryCode(IPAddress string) string {
 	}
 	db, err := geoip2.Open("GeoLite2-Country.mmdb")
 	if err != nil {
+		log.LogToFile("Error opening GeoLite2-Country.mmdb.")
+		log.LogToFile(err.Error())
+
+		if dir, err := os.Getwd(); err == nil {
+			log.LogToFile("Current working directory: " + dir)
+		}
 		return ""
 	}
 	defer db.Close()

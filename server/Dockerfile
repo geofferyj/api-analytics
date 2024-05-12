@@ -34,6 +34,9 @@ WORKDIR /root/
 # Copy the executable from the builder stage
 COPY --from=builder /root/api/app .
 
+# Copy GeoLite2-Country.mmdb
+COPY --from=builder /root/GeoLite2-Country.mmdb .
+
 # Expose port 3000 to the outside world
 EXPOSE 3000
 
