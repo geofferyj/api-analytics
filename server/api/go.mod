@@ -8,9 +8,11 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/jackc/pgtype v1.14.1
 	github.com/jackc/pgx/v5 v5.5.2
-	github.com/joho/godotenv v1.5.1
-	github.com/tom-draper/api-analytics/server/database v0.0.0-20240125183621-9b142186a937
+	github.com/oschwald/geoip2-golang v1.9.0
+	github.com/tom-draper/api-analytics/server/database v0.0.0
 )
+
+replace github.com/tom-draper/api-analytics/server/database => ../database
 
 require (
 	github.com/bytedance/sonic v1.10.2 // indirect
@@ -27,6 +29,7 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
@@ -34,6 +37,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/oschwald/maxminddb-golang v1.11.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
 	github.com/redis/go-redis/v9 v9.4.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

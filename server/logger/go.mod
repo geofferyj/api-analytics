@@ -6,7 +6,7 @@ require (
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/oschwald/geoip2-golang v1.9.0
-	github.com/tom-draper/api-analytics/server/database v0.0.0-20240305081348-4fc8bbc11019
+	github.com/tom-draper/api-analytics/server/database v0.0.0-20240125183621-9b142186a937
 )
 
 require (
@@ -25,7 +25,6 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
-	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect

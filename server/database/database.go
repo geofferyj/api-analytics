@@ -1,25 +1,103 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
-
-	"github.com/joho/godotenv"
 )
+
+var queries string = `
+-- Ensure necessary extension for UUID generation is available
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Creating the 'users' table
+CREATE TABLE IF NOT EXISTS users (
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    api_key UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    last_accessed TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Creating the 'user_agents' table
+CREATE TABLE IF NOT EXISTS user_agents (
+    id SERIAL PRIMARY KEY,
+    user_agent VARCHAR(255) UNIQUE NOT NULL
+);
+
+-- Creating the 'requests' table
+CREATE TABLE IF NOT EXISTS requests (
+    request_id SERIAL PRIMARY KEY,
+    api_key UUID NOT NULL,
+    ip_address CIDR,
+    path VARCHAR(255),
+    hostname VARCHAR(255),
+    user_agent_id INT,
+    method INT,
+    response_time INT,
+    status INT,
+    location VARCHAR(255),
+    user_id UUID,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    FOREIGN KEY (api_key) REFERENCES users(api_key),
+    FOREIGN KEY (user_agent_id) REFERENCES user_agents(id)
+);
+
+-- Creating the 'monitor' table
+CREATE TABLE IF NOT EXISTS monitor (
+    monitor_id SERIAL PRIMARY KEY,
+    api_key UUID NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    secure BOOLEAN NOT NULL,
+    ping BOOLEAN NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (api_key) REFERENCES users(api_key)
+);
+
+-- Creating the 'pings' table
+CREATE TABLE IF NOT EXISTS pings (
+    ping_id SERIAL PRIMARY KEY,
+    api_key UUID NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    response_time INT,
+    status INT,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    FOREIGN KEY (api_key) REFERENCES users(api_key)
+);
+
+-- Indices for the 'users' table
+CREATE INDEX IF NOT EXISTS idx_users_api_key ON users (api_key);
+
+-- Indices for the 'requests' table
+CREATE INDEX IF NOT EXISTS idx_requests_api_key ON requests (api_key);
+CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests (created_at);
+CREATE INDEX IF NOT EXISTS idx_requests_user_agent_id ON requests (user_agent_id);
+
+-- Indices for the 'monitor' table
+CREATE INDEX IF NOT EXISTS idx_monitor_api_key ON monitor (api_key);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_monitor_api_key_url ON monitor (api_key, url);
+
+-- Indices for the 'pings' table
+CREATE INDEX IF NOT EXISTS idx_pings_api_key ON pings (api_key);
+CREATE INDEX IF NOT EXISTS idx_pings_api_key_url ON pings (api_key, url);
+
+
+`
 
 var dbUsername string
 var dbPassword string
 var dbName string
 
 type UserRow struct {
-	UserID    string    `json:"user_id"`
-	APIKey    string    `json:"api_key"`
-	CreatedAt time.Time `json:"created_at"`
+	UserID     string    `json:"user_id"`
+	APIKey     string    `json:"api_key"`
+	CreatedAt  time.Time `json:"created_at"`
+	LastAccess time.Time `json:"last_accessed"`
 }
 
 type RequestRow struct {
@@ -54,10 +132,10 @@ type PingsRow struct {
 }
 
 func getDBLogin() (string, string) {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
-	}
+	// err := godotenv.Load(".env")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	username := os.Getenv("POSTGRES_USERNAME")
 	password := os.Getenv("POSTGRES_PASSWORD")
@@ -97,43 +175,33 @@ func OpenDBConnectionNamed(database string) *sql.DB {
 	}
 }
 
-func CreateUsersTable(db *sql.DB) error {
-	_, err := db.Exec("DROP TABLE IF EXISTS users;")
-	if err != nil {
-		panic(err)
-	}
+func CreateUsersTable(db *pgx.Conn) error {
 
-	_, err = db.Exec("CREATE TABLE users (user_id UUID NOT NULL, api_key UUID NOT NULL, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
+	_, err := db.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS users (user_id UUID NOT NULL, api_key UUID NOT NULL, created_at TIMESTAMPTZ NOT NULL, last_accessed TIMESTAMPTZ, PRIMARY KEY (api_key));")
 	return err
 }
 
-func CreateRequestsTable(db *sql.DB) error {
-	_, err := db.Exec("DROP TABLE IF EXISTS requests;")
-	if err != nil {
-		panic(err)
-	}
+func CreateRequestsTable(db *pgx.Conn) error {
 
-	_, err = db.Exec("CREATE TABLE requests (request_id INTEGER, api_key UUID NOT NULL, path VARCHAR(255) NOT NULL, hostname VARCHAR(255), ip_address CIDR, location CHAR(2), user_agent VARCHAR(255), method SMALLINT NOT NULL, status SMALLINT NOT NULL, response_time SMALLINT NOT NULL, framework SMALLINT NOT NULL, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
+	_, err := db.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS requests (request_id INTEGER, api_key UUID NOT NULL, path VARCHAR(255) NOT NULL, hostname VARCHAR(255), ip_address CIDR, location CHAR(2), user_agent VARCHAR(255), method SMALLINT NOT NULL, status SMALLINT NOT NULL, response_time SMALLINT NOT NULL, framework SMALLINT NOT NULL, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
 	return err
 }
 
-func CreateMonitorTable(db *sql.DB) error {
-	_, err := db.Exec("DROP TABLE IF EXISTS monitor;")
-	if err != nil {
-		panic(err)
-	}
+func CreateMonitorTable(db *pgx.Conn) error {
 
-	_, err = db.Exec("CREATE TABLE monitor (api_key UUID NOT NULL, url VARCHAR(255) NOT NULL, secure BOOLEAN, PING BOOLEAN, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
+	_, err := db.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS monitor (api_key UUID NOT NULL, url VARCHAR(255) NOT NULL, secure BOOLEAN, PING BOOLEAN, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
 	return err
 }
 
-func CreatePingsTable(db *sql.DB) error {
-	_, err := db.Exec("DROP TABLE IF EXISTS pings;")
-	if err != nil {
-		panic(err)
-	}
+func CreatePingsTable(db *pgx.Conn) error {
+	_, err := db.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS pings (api_key UUID NOT NULL, url VARCHAR(255) NOT NULL, response_time INTEGER, status SMALLINT, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
+	return err
+}
 
-	_, err = db.Exec("CREATE TABLE pings (api_key UUID NOT NULL, url VARCHAR(255) NOT NULL, response_time INTEGER, status SMALLINT, created_at TIMESTAMPTZ NOT NULL, PRIMARY KEY (api_key));")
+func CreateTables() error {
+	db := NewConnection()
+	defer db.Close(context.Background())
+	_, err := db.Exec(context.Background(), queries)
 	return err
 }
 
@@ -142,7 +210,7 @@ func DeleteUser(apiKey string) error {
 	defer db.Close()
 
 	query := fmt.Sprintf("DELETE FROM users WHERE api_key = '%s';", apiKey)
-	rows, err := db.Query(query)
+	_, err := db.Query(query)
 	return err
 }
 

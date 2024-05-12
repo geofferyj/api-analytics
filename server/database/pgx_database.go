@@ -5,14 +5,14 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
+
 )
 
 func getDatabaseUrl() string {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
-	}
+	// err := godotenv.Load(".env")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	url := os.Getenv("POSTGRES_URL")
 	return url
