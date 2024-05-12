@@ -18,7 +18,7 @@ def _post_requests(
 ):
     logger.info("Analytics: Sending requests to server")
     logger.info(f"Analytics-url:{DEFAULT_SERVER_URL}/api/log-request")
-    requests.post(
+    res = requests.post(
         f"{DEFAULT_SERVER_URL}/api/log-request",
         json={
             "api_key": api_key,
@@ -28,6 +28,9 @@ def _post_requests(
         },
         timeout=10,
     )
+
+    logger.info("Analytics: request to server: %s", res.request.body)
+    logger.info("Analytics: Response from server: %s", res.status_code)
 
 
 def log_request(api_key: str, request_data: Dict, framework: str, privacy_level: int):
