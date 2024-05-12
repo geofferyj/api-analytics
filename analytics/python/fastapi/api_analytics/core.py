@@ -1,3 +1,4 @@
+import os
 import threading
 from datetime import datetime
 from typing import Dict, List
@@ -5,7 +6,7 @@ from typing import Dict, List
 import requests
 
 
-DEFAULT_SERVER_URL = 'https://www.apianalytics-server.com'
+DEFAULT_SERVER_URL = os.getenv("ANALYTICS_SERVER_URL", "https://www.apianalytics-server.com")
 
 _requests = []
 _last_posted = datetime.now()
