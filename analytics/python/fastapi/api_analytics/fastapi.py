@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from time import time
 from typing import Callable, Union
+from logging import Logger
 
 from api_analytics.core import log_request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -9,7 +10,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-
+logger = Logger(__name__)
 @dataclass
 class Config:
     """
@@ -111,5 +112,6 @@ class Analytics(BaseHTTPMiddleware):
             "created_at": datetime.now().isoformat(),
         }
 
+        logger.info("Analytics: Logging request")
         log_request(self.api_key, request_data, "FastAPI", self.config.privacy_level)
         return response

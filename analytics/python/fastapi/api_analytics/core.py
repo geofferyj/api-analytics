@@ -2,8 +2,11 @@ import os
 import threading
 from datetime import datetime
 from typing import Dict, List
+from logging import getLogger
 
 import requests
+
+logger = getLogger(__name__)
 DEFAULT_SERVER_URL = os.getenv("ANALYTICS_SERVER_URL", "https://www.apianalytics-server.com")
 
 _requests = []
@@ -13,6 +16,8 @@ _last_posted = datetime.now()
 def _post_requests(
     api_key: str, requests_data: List[Dict], framework: str, privacy_level: int
 ):
+    logger.info("Analytics: Sending requests to server")
+    logger.info(f"Analytics-url:{DEFAULT_SERVER_URL}/api/log-request")
     requests.post(
         f"{DEFAULT_SERVER_URL}/api/log-request",
         json={
