@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -15,3 +16,15 @@ func LogToFile(msg string) {
 	log.SetOutput(f)
 	log.Println(msg)
 }
+
+
+func LogErrorToFile(ipAddress string, apiKey string, msg string) {
+	text := fmt.Sprintf("%s %s :: %s", ipAddress, apiKey, msg)
+	LogToFile(text)
+}
+
+func LogRequestsToFile(apiKey string, inserted int, totalRequests int) {
+	text := fmt.Sprintf("key=%s: %d/%d", apiKey, inserted, totalRequests)
+	LogToFile(text)
+}
+
