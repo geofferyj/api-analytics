@@ -6,9 +6,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    
-    ports:
-      - "3001:3000"
 
     environment:
       POSTGRES_DATABASE: analytics-db
