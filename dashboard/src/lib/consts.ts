@@ -1,4 +1,4 @@
-export const serverURL: string = 'http://localhost:3001';
+export const serverURL: string = 'https://api.analytics.compad.org';
 
 export const columns = [
 	'ip_address',
